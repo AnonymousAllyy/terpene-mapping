@@ -24,6 +24,11 @@ export interface Property  {
     ConsumerFacingDesr: null | string;
 }
 
+export interface BasicProperty {
+    PropertyID: number;
+    Property: string;
+}
+
 export interface SmellwithCitation extends Smell {
     Citation: null | string;
 }

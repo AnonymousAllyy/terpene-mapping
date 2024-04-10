@@ -1,51 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import { Modal, Typography, Button, Box, MenuItem, Select, SelectChangeEvent, Chip } from '@mui/material';
-import { getTastes, getSmells, getProperties, updateTerpeneObject } from '@/api/api';
-import {
-    Terpene,
-    Property,
-    PropertywithCitation,
-    Smell,
-    SmellwithCitation,
-    Taste,
-    TastewithCitation,
-    TerpeneObjectResponse
-} from '@/interfaces';
+import React, {useEffect, useState} from 'react';
+import {Box, Button, Chip, MenuItem, Modal, Select, SelectChangeEvent, Typography} from '@mui/material';
+import {updateTerpeneObject} from '@/api/api';
+import {BasicProperty, Property, PropertywithCitation, Smell, Taste, TerpeneObjectResponse} from '@/interfaces';
 import CancelIcon from '@mui/icons-material/Cancel';
+import useFetchTerpeneData from '@/hooks/useFetchTerpeneData';
 
 interface Props {
     terpene: TerpeneObjectResponse;
     open: boolean;
     onClose: () => void;
     onClearSelections: () => void;
+    handleSnackbarOpen: (message: string) => void;
 }
 
+
 const SelectionModal: React.FC<Props> = ({ terpene, open, onClose, onClearSelections, handleSnackbarOpen }) => {
-    const [tastes, setTastes] = useState<Taste[]>([]);
-    const [smells, setSmells] = useState<Smell[]>([]);
-    const [properties, setProperties] = useState<Property[]>([]);
+    const {tastes, smells, properties} = useFetchTerpeneData(open);
     const [selectedTastes, setSelectedTastes] = useState<Taste[]>([]);
     const [selectedSmells, setSelectedSmells] = useState<Smell[]>([]);
-    const [selectedProperties, setSelectedProperties] = useState<Property[]>([]);
+    const [selectedProperties, setSelectedProperties] = useState<BasicProperty[]>([]);
+
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const tastesData = await getTastes(0, '');
-                setTastes(tastesData);
-                const smellsData = await getSmells(0, ''); // Assuming dispensary ID is 0 and no specific strain type IDs
-                setSmells(smellsData);
-                const propertiesData = await getProperties();
-                setProperties(propertiesData);
-            } catch (error) {
-                console.error('Error fetching data:', error);
-            }
-        };
-
-        fetchData();
-    }, [open]); // Fetch data whenever the modal opens
-
-    useEffect(() => {
+        console.log('Modal open state:', open);
         if (!open) {
             // Reset selected tastes, smells, and properties when modal is closed
             setSelectedTastes([]);
@@ -59,23 +36,20 @@ const SelectionModal: React.FC<Props> = ({ terpene, open, onClose, onClearSelect
         let allSmells = [];
         let allProperties = [];
 
-        if (terpene.aryTaste) {
-            allTastes = [...terpene.aryTaste, ...selectedTastes].map(taste => ({ ...taste, Citation: '' }));
-        } else {
-            allTastes = [...selectedTastes].map(taste => ({ ...taste, Citation: '' }));
-        }
+        // Filter out duplicate tastes
+        const newSelectedTastes = selectedTastes.filter(taste => !terpene.aryTaste || !terpene.aryTaste.find(t => t.TasteID === taste.TasteID));
+        allTastes = terpene.aryTaste ? [...terpene.aryTaste, ...newSelectedTastes] : [...newSelectedTastes];
+        allTastes = allTastes.map(taste => ({...taste, Citation: ''}));
 
-        if (terpene.arySmell) {
-            allSmells = [...terpene.arySmell, ...selectedSmells].map(smell => ({ ...smell, Citation: '' }));
-        } else {
-            allSmells = [...selectedSmells].map(smell => ({ ...smell, Citation: '' }));
-        }
+        // Filter out duplicate smells
+        const newSelectedSmells = selectedSmells.filter(smell => !terpene.arySmell || !terpene.arySmell.find(s => s.SmellID === smell.SmellID));
+        allSmells = terpene.arySmell ? [...terpene.arySmell, ...newSelectedSmells] : [...newSelectedSmells];
+        allSmells = allSmells.map(smell => ({...smell, Citation: ''}));
 
-        if (terpene.aryProperty) {
-            allProperties = [...terpene.aryProperty, ...selectedProperties].map(property => ({ ...property, Citation: '' }));
-        } else {
-            allProperties = [...selectedProperties].map(property => ({ ...property, Citation: '' }));
-        }
+        // Filter out duplicate properties
+        const newSelectedProperties = selectedProperties.filter(property => !terpene.aryProperty || !terpene.aryProperty.find(p => p.PropertyID === property.PropertyID));
+        allProperties = terpene.aryProperty ? [...terpene.aryProperty, ...newSelectedProperties] : [...newSelectedProperties];
+        allProperties = allProperties.map(property => ({...property, Citation: ''}));
 
         const terpeneObject: TerpeneObjectResponse = {
             TerpeneID: terpene.TerpeneID,
@@ -103,12 +77,13 @@ const SelectionModal: React.FC<Props> = ({ terpene, open, onClose, onClearSelect
         setSelectedSmells(prevSmells => prevSmells.filter(smell => smell !== smellToDelete));
     }
 
-    const handleDeleteProperty = (propertyToDelete: Property) => {
-        setSelectedProperties(prevProperties => prevProperties.filter(property => property !== propertyToDelete));
+    const handleDeleteProperty = (propertyToDelete: BasicProperty) => {
+        setSelectedProperties(prevProperties => prevProperties.filter(property => property.PropertyID !== propertyToDelete.PropertyID));
     }
 
     const handleTasteChange = (event: SelectChangeEvent<Taste[]>) => {
         setSelectedTastes(event.target.value as Taste[]);
+        console.log(selectedTastes);
     };
 
     const handleSmellChange = (event: SelectChangeEvent<Smell[]>) => {
@@ -116,7 +91,14 @@ const SelectionModal: React.FC<Props> = ({ terpene, open, onClose, onClearSelect
     };
 
     const handlePropertyChange = (event: SelectChangeEvent<Property[]>) => {
-        setSelectedProperties(event.target.value as Property[]);
+        const selectedProperties = event.target.value as Property[];
+        console.log(selectedProperties);
+        const newSelectedProperty = selectedProperties.map(property => ({
+            PropertyID: property.PropertyID,
+            Property: property.Property
+        }));
+        console.log(newSelectedProperty);
+        setSelectedProperties(newSelectedProperty);
     };
 
     const clearSelections = () => {
@@ -125,6 +107,13 @@ const SelectionModal: React.FC<Props> = ({ terpene, open, onClose, onClearSelect
         setSelectedProperties([]);
     };
 
+    function transformPropertyToPropertyWithCitation(property: Property): PropertywithCitation {
+        return {
+            PropertyID: property.PropertyID,
+            Property: property.Property,
+            Citation: null // or provide a default citation if available
+        };
+    }
     return (
         <Modal open={open} onClose={onClose}>
             <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 400, bgcolor: 'background.paper', boxShadow: 24, p: 4 }}>
@@ -143,13 +132,13 @@ const SelectionModal: React.FC<Props> = ({ terpene, open, onClose, onClearSelect
                     }}
                 >
                     {smells.map((smell) => (
-                        <MenuItem key={smell.SmellID} value={smell}>
+                        <MenuItem key={smell.SmellID} value={smell as any}>
                             {smell.Smell}
                         </MenuItem>
                     ))}
                 </Select>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', marginTop: '8px' }}>
-                    {selectedSmells.map((smell) => (
+                    {selectedSmells && selectedSmells.map((smell) => (
                         <Chip
                             key={smell.SmellID}
                             label={smell.Smell}
@@ -174,13 +163,13 @@ const SelectionModal: React.FC<Props> = ({ terpene, open, onClose, onClearSelect
                     }}
                 >
                     {tastes.map((taste) => (
-                        <MenuItem key={taste.TasteID} value={taste}>
+                        <MenuItem key={taste.TasteID} value={taste as any}>
                             {taste.Taste}
                         </MenuItem>
                     ))}
                 </Select>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', marginTop: '8px' }}>
-                    {selectedTastes.map((taste) => (
+                    {selectedTastes && selectedTastes.map((taste) => (
                         <Chip
                             key={taste.TasteID}
                             label={taste.Taste}
@@ -193,7 +182,7 @@ const SelectionModal: React.FC<Props> = ({ terpene, open, onClose, onClearSelect
                 <Typography variant="h6">Select Properties:</Typography>
                 <Select
                     multiple
-                    value={selectedProperties}
+                    value={properties.filter(property => selectedProperties.some(selectedProperty => selectedProperty.PropertyID === property.PropertyID))}
                     onChange={handlePropertyChange}
                     sx={{ width: '100%' }}
                     MenuProps={{
@@ -205,13 +194,13 @@ const SelectionModal: React.FC<Props> = ({ terpene, open, onClose, onClearSelect
                     }}
                 >
                     {properties.map((property) => (
-                        <MenuItem key={property.PropertyID} value={property}>
+                        <MenuItem key={property.PropertyID} value={property as any}>
                             {property.Property}
                         </MenuItem>
                     ))}
                 </Select>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', marginTop: '8px' }}>
-                    {selectedProperties.map((property) => (
+                    {selectedProperties && selectedProperties.map((property) => (
                         <Chip
                             key={property.PropertyID}
                             label={property.Property}
@@ -227,7 +216,7 @@ const SelectionModal: React.FC<Props> = ({ terpene, open, onClose, onClearSelect
                     onClearSelections();
                 }} variant="contained" color="error" sx={{ ml: 1 }}>
                     Clear
-                </Button>;
+                </Button>
             </Box>
         </Modal>
     );

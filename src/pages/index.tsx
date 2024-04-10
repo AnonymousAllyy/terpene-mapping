@@ -1,26 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, {useEffect, useState} from 'react';
+import {Box, Button, Grid, MenuItem, Paper, Select, SelectChangeEvent, Snackbar, Typography} from '@mui/material';
 import {
-    Select,
-    MenuItem,
-    Box,
-    Typography,
-    Grid,
-    Button,
-    Modal,
-    Checkbox,
-    ListItemText,
-    InputLabel, SelectChangeEvent, Paper, Snackbar
-} from '@mui/material';
-import {
-    Terpene,
-    TerpeneObjectResponse,
+    PropertywithCitation,
+    Smell,
+    SmellwithCitation,
     Taste,
-    Property, Smell, PropertywithCitation, SmellwithCitation, TastewithCitation
+    TastewithCitation,
+    Terpene,
+    TerpeneObjectResponse
 } from '@/interfaces';
-import {getTerpenes, getTerpeneObject} from '@/api/api';
-import {FormControl} from '@mui/base';
+import {getTerpeneObject, getTerpenes} from '@/api/api';
 import SelectionModal from '@/components/SelectionModal';
-import MuiAlert, { AlertProps } from '@mui/material/Alert';
+import MuiAlert from '@mui/material/Alert';
+import DeletionModal from '@/components/DeletionModal';
 
 interface PropertyObject {
     Property: string;
@@ -38,6 +30,7 @@ const Page: React.FC = () => {
         aryProperty: []
     });
     const [openSelectionModal, setOpenSelectionModal] = useState(false);
+    const [openDeletionModal, setOpenDeletionModal] = useState(false);
     const [selectedTastes, setSelectedTastes] = useState<TastewithCitation[]>([]);
     const [selectedSmells, setSelectedSmells] = useState<SmellwithCitation[]>([]);
     const [selectedProperties, setSelectedProperties] = useState<PropertywithCitation[]>([]);
@@ -105,10 +98,10 @@ const Page: React.FC = () => {
     const handleAddSelectionClick = () => {
         setOpenSelectionModal(true);
     };
-
-    const handleSelectionModalClose = () => {
-        setOpenSelectionModal(false);
+    const handleDeleteSelectionClick = () => {
+        setOpenDeletionModal(true);
     };
+
 
     const clearSelections = () => {
         setSelectedTastes([]);
@@ -146,7 +139,8 @@ const Page: React.FC = () => {
                     {selectedTerpene?.Terpene && (
                         <>
                             <Button onClick={handleAddSelectionClick} variant="outlined">Add Details</Button>
-                            <Button onClick={handleAddSelectionClick} variant="outlined" color="error" sx={{ ml: 1 }}>Remove Details</Button>
+                            <Button onClick={handleDeleteSelectionClick} variant="outlined" color="error" sx={{ml: 1}}>Remove
+                                Details</Button>
                             <Button onClick={handleCitationClick} variant="outlined" color="secondary" sx={{ ml: 1 }}>Add Citations</Button>
                         </>
                     )}
@@ -198,10 +192,21 @@ const Page: React.FC = () => {
                 terpene={selectedTerpene}
                 open={openSelectionModal}
                 onClose={() => {
-                    handleSelectionModalClose();
-                    fetchAndUpdateTerpeneObject(selectedTerpene.TerpeneID); // Call fetchTerpeneObject after modal is closed
+                    setOpenSelectionModal(false);
+                    fetchAndUpdateTerpeneObject(selectedTerpene.TerpeneID).then(r => {
+                    }); // Call fetchTerpeneObject after modal is closed
                 }}
                 onClearSelections={clearSelections}
+                handleSnackbarOpen={handleSnackbarOpen}
+            />
+            <DeletionModal
+                terpene={selectedTerpene}
+                open={openDeletionModal}
+                onClose={() => {
+                    setOpenDeletionModal(false);
+                    fetchAndUpdateTerpeneObject(selectedTerpene.TerpeneID).then(r => {
+                    }); // Call fetchTerpeneObject after modal is closed
+                }}
                 handleSnackbarOpen={handleSnackbarOpen}
             />
             <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
