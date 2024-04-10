@@ -23,7 +23,7 @@ const useFetchData = (open: boolean) => {
         };
 
         if (open) {
-            fetchData().then(r => {
+            fetchData().then(() => {
             });
         }
     }, [open]);
