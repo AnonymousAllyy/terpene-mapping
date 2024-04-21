@@ -1,5 +1,5 @@
 import {Box, Button, Chip, MenuItem, Modal, Select, SelectChangeEvent, Typography} from '@mui/material';
-import {updateTerpeneObject} from '@/api/api';
+import {getTerpeneObject, updateTerpeneObject} from '@/api/api';
 import React, {useEffect, useState} from 'react';
 import {
     BasicProperty,
@@ -20,7 +20,7 @@ interface DeletionProps {
     openSnackbar: (message: string) => void;
 }
 
-const DeletionModal: React.FC<DeletionProps> = ({terpene, open, onClose, openSnackbar}) => {
+const EditTerpeneDetailsModal: React.FC<DeletionProps> = ({terpene, open, onClose, openSnackbar}) => {
     const {tastes, smells, properties} = useFetchTerpeneData(open);
     const [selectedTastes, setSelectedTastes] = useState<TastewithCitation[]>(terpene.aryTaste);
     const [selectedSmells, setSelectedSmells] = useState<SmellwithCitation[]>(terpene.arySmell);
@@ -41,12 +41,32 @@ const DeletionModal: React.FC<DeletionProps> = ({terpene, open, onClose, openSna
     }, [terpene]);
 
 
-    const handleDelete = async () => {
-        let updatedTerpene = {...terpene};
+    const updateTerpeneDetails = async () => {
+        // Fetch the latest terpene object from the server
+        const latestTerpene = await getTerpeneObject(terpene.TerpeneID);
 
-        updatedTerpene.arySmell = selectedSmells;
-        updatedTerpene.aryTaste = selectedTastes;
-        updatedTerpene.aryProperty = selectedProperties;
+        let updatedTerpene = {...latestTerpene};
+
+        updatedTerpene.arySmell = selectedSmells.map(selectedSmell => {
+            const existingSmell = latestTerpene.arySmell
+                ? latestTerpene.arySmell.find(smell => smell.SmellID === selectedSmell.SmellID)
+                : null;
+            return existingSmell ? existingSmell : {...selectedSmell, Citation: ''};
+        });
+
+        updatedTerpene.aryTaste = selectedTastes.map(selectedTaste => {
+            const existingTaste = latestTerpene.aryTaste
+                ? latestTerpene.aryTaste.find(taste => taste.TasteID === selectedTaste.TasteID)
+                : null;
+            return existingTaste ? existingTaste : {...selectedTaste, Citation: ''};
+        });
+
+        updatedTerpene.aryProperty = selectedProperties.map(selectedProperty => {
+            const existingProperty = latestTerpene.aryProperty
+                ? latestTerpene.aryProperty.find(property => property.PropertyID === selectedProperty.PropertyID)
+                : null;
+            return existingProperty ? existingProperty : {...selectedProperty, Citation: ''};
+        });
 
         try {
             await updateTerpeneObject(updatedTerpene);
@@ -88,7 +108,7 @@ const DeletionModal: React.FC<DeletionProps> = ({terpene, open, onClose, openSna
         setSelectedProperties(initialProperties);
     };
 
-    // @ts-ignore
+
     return (
         <Modal open={open} onClose={onClose}>
             <Box sx={{
@@ -101,7 +121,7 @@ const DeletionModal: React.FC<DeletionProps> = ({terpene, open, onClose, openSna
                 boxShadow: 24,
                 p: 4
             }}>
-                <Typography variant="h6">Delete Smells:</Typography>
+                <Typography variant="h6" sx={{mt: 2}}>Selected Smells:</Typography>
                 <Select
                     multiple
                     value={smells.filter(smell => selectedSmells.some(selectedSmell => selectedSmell.SmellID === smell.SmellID))}
@@ -132,7 +152,7 @@ const DeletionModal: React.FC<DeletionProps> = ({terpene, open, onClose, openSna
                         />
                     ))}
                 </Box>
-                <Typography variant="h6">Delete Tastes:</Typography>
+                <Typography variant="h6" sx={{mt: 2}}>Selected Tastes:</Typography>
                 <Select
                     multiple
                     value={tastes.filter(taste => selectedTastes.some(selectedTaste => selectedTaste.TasteID === taste.TasteID))}
@@ -163,7 +183,7 @@ const DeletionModal: React.FC<DeletionProps> = ({terpene, open, onClose, openSna
                         />
                     ))}
                 </Box>
-                <Typography variant="h6">Delete Properties:</Typography>
+                <Typography variant="h6" sx={{mt: 2}}> Selected Properties:</Typography>
                 <Select
                     multiple
                     value={properties.filter(property => selectedProperties.some(selectedProperty => selectedProperty.PropertyID === property.PropertyID))}
@@ -183,7 +203,7 @@ const DeletionModal: React.FC<DeletionProps> = ({terpene, open, onClose, openSna
                         </MenuItem>
                     ))}
                 </Select>
-                <Box sx={{display: 'flex', flexWrap: 'wrap', marginTop: '8px'}}>
+                <Box sx={{display: 'flex', flexWrap: 'wrap', mt: 1, mb: 2}}>
                     {selectedProperties.map((property) => (
                         <Chip
                             key={property.PropertyID}
@@ -194,7 +214,7 @@ const DeletionModal: React.FC<DeletionProps> = ({terpene, open, onClose, openSna
                         />
                     ))}
                 </Box>
-                <Button onClick={handleDelete} variant="contained">Save</Button>
+                <Button onClick={updateTerpeneDetails} variant="contained">Save</Button>
                 <Button onClick={resetSelections} variant="contained" color="error" sx={{ml: 1}}>
                     Reset
                 </Button>
@@ -203,4 +223,4 @@ const DeletionModal: React.FC<DeletionProps> = ({terpene, open, onClose, openSna
     );
 };
 
-export default DeletionModal;
+export default EditTerpeneDetailsModal;

@@ -2,9 +2,8 @@ import React, {useEffect, useState} from 'react';
 import {Box, Button, Grid, MenuItem, Paper, Select, SelectChangeEvent, Snackbar, Typography} from '@mui/material';
 import {PropertywithCitation, SmellwithCitation, TastewithCitation, Terpene, TerpeneObjectResponse} from '@/interfaces';
 import {getTerpeneObject, getTerpenes, updateTerpeneObject} from '@/api/api';
-import SelectionModal from '@/components/SelectionModal';
 import MuiAlert from '@mui/material/Alert';
-import DeletionModal from '@/components/DeletionModal';
+import EditTerpeneDetailsModal from '@/components/EditTerpeneDetailsModal';
 import CitationList from '@/components/CitationList';
 
 const Index: React.FC = () => {
@@ -17,8 +16,8 @@ const Index: React.FC = () => {
         arySynonym: [],
         aryProperty: []
     });
-    const [selectionModal, setOpenSelectionModal] = useState(false);
-    const [deletionModal, setOpenDeletionModal] = useState(false);
+
+    const [terpeneDetailsModal, setTerpeneDetailsModal] = useState(false);
     const [selectedTastes, setSelectedTastes] = useState<TastewithCitation[]>([]);
     const [selectedSmells, setSelectedSmells] = useState<SmellwithCitation[]>([]);
     const [selectedProperties, setSelectedProperties] = useState<PropertywithCitation[]>([]);
@@ -45,9 +44,31 @@ const Index: React.FC = () => {
         setSnackbarOpen(true);
     };
 
-    const handleSnackbarClose = () => {
+    const closeSnackbar = () => {
         setSnackbarOpen(false);
     };
+
+    const openTerpeneDetailsModal = () => {
+        setTerpeneDetailsModal(true);
+    };
+
+    const fetchAndUpdateTerpeneObject = async (terpeneID: number) => {
+        try {
+            const data = await getTerpeneObject(terpeneID);
+            if (data) {
+                setSelectedTerpene(data);
+                setSelectedSmells(data.arySmell);
+                setSelectedTastes(data.aryTaste);
+                setSelectedProperties(data.aryProperty);
+            } else {
+                console.error('Unexpected data format:', data);
+            }
+        } catch (error) {
+            console.error('Error fetching terpene object:', error);
+        }
+    };
+
+
 
     const handleTerpeneChange = async (event: SelectChangeEvent<number>) => {
         const terpeneID = event.target.value as number;
@@ -68,36 +89,6 @@ const Index: React.FC = () => {
             setSelectedProperties([]);
         }
     };
-
-    const fetchAndUpdateTerpeneObject = async (terpeneID: number) => {
-        try {
-            const data = await getTerpeneObject(terpeneID);
-            if (data) {
-                setSelectedTerpene(data);
-                setSelectedSmells(data.arySmell);
-                setSelectedTastes(data.aryTaste);
-                setSelectedProperties(data.aryProperty);
-            } else {
-                console.error('Unexpected data format:', data);
-            }
-        } catch (error) {
-            console.error('Error fetching terpene object:', error);
-        }
-    };
-
-    const openSelectionModal = () => {
-        setOpenSelectionModal(true);
-    };
-    const openDeletionModal = () => {
-        setOpenDeletionModal(true);
-    };
-
-
-    const clearSelections = () => {
-        setSelectedTastes([]);
-        setSelectedSmells([]);
-        setSelectedProperties([]);
-    }
 
     const createHandleCitationChange = (type: 'smell' | 'taste' | 'property') => async (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, id: number) => {
         const newCitation = event.target.value;
@@ -165,11 +156,11 @@ const Index: React.FC = () => {
                     ))}
                 </Select>
                 <Grid container spacing={2} justifyContent="center">
-                    {selectedTerpene && (
+                    {selectedTerpene.TerpeneID !== 0 && (
                         <>
                             <Grid item xs={6} sx={{mt: 1}}>
-                                <Button onClick={openSelectionModal} variant="outlined">Add Details</Button>
-                                <Button onClick={openDeletionModal} variant="outlined" color="error" sx={{ml: 1}}>Remove
+                                <Button onClick={openTerpeneDetailsModal} variant="outlined" color="success"
+                                        sx={{ml: 1}}>Add or Remove
                                     Details</Button>
                             </Grid>
                         </>
@@ -227,29 +218,18 @@ const Index: React.FC = () => {
                     </Grid>
                 </Box>
             )}
-            <SelectionModal
+            <EditTerpeneDetailsModal
                 terpene={selectedTerpene}
-                open={selectionModal}
+                open={terpeneDetailsModal}
                 onClose={() => {
-                    setOpenSelectionModal(false);
-                    fetchAndUpdateTerpeneObject(selectedTerpene?.TerpeneID).then(() => {
-                    }); // Call fetchTerpeneObject after modal is closed
-                }}
-                onClearSelections={clearSelections}
-                openSnackbar={openSnackbar}
-            />
-            <DeletionModal
-                terpene={selectedTerpene}
-                open={deletionModal}
-                onClose={() => {
-                    setOpenDeletionModal(false);
-                    fetchAndUpdateTerpeneObject(selectedTerpene?.TerpeneID).then(() => {
+                    setTerpeneDetailsModal(false);
+                    fetchAndUpdateTerpeneObject(selectedTerpene.TerpeneID).then(() => {
                     }); // Call fetchTerpeneObject after modal is closed
                 }}
                 openSnackbar={openSnackbar}
             />
-            <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
-                <MuiAlert elevation={6} variant="filled" onClose={handleSnackbarClose} severity="success">
+            <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={closeSnackbar}>
+                <MuiAlert elevation={6} variant="filled" onClose={closeSnackbar} severity="success">
                     {snackbarMessage}
                 </MuiAlert>
             </Snackbar>
