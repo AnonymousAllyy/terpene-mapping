@@ -49,6 +49,6 @@ interface Synonym {
 export interface TerpeneObjectResponse extends Terpene {
     arySmell: SmellwithCitation[];
     aryTaste: TastewithCitation[];
-    arySynonym: null | Synonym[];
+    arySynonym: undefined | Synonym[];
     aryProperty: PropertywithCitation[];
 }

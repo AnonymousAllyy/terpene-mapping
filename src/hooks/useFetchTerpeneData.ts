@@ -13,7 +13,7 @@ const useFetchData = (open: boolean) => {
             try {
                 const tastesData = await getTastes(0, '');
                 setTastes(tastesData);
-                const smellsData = await getSmells(0, ''); // Assuming dispensary ID is 0 and no specific strain type IDs
+                const smellsData = await getSmells(0, '');
                 setSmells(smellsData);
                 const propertiesData = await getProperties();
                 setProperties(propertiesData);

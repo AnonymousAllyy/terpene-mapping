@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {Box, Button, Chip, MenuItem, Modal, Select, SelectChangeEvent, Typography} from '@mui/material';
 import {updateTerpeneObject} from '@/api/api';
-import {BasicProperty, Property, PropertywithCitation, Smell, Taste, TerpeneObjectResponse} from '@/interfaces';
+import {BasicProperty, Property, Smell, Taste, TerpeneObjectResponse} from '@/interfaces';
 import CancelIcon from '@mui/icons-material/Cancel';
 import useFetchTerpeneData from '@/hooks/useFetchTerpeneData';
 
@@ -10,11 +10,11 @@ interface Props {
     open: boolean;
     onClose: () => void;
     onClearSelections: () => void;
-    handleSnackbarOpen: (message: string) => void;
+    openSnackbar: (message: string) => void;
 }
 
 
-const SelectionModal: React.FC<Props> = ({ terpene, open, onClose, onClearSelections, handleSnackbarOpen }) => {
+const SelectionModal: React.FC<Props> = ({terpene, open, onClose, onClearSelections, openSnackbar}) => {
     const {tastes, smells, properties} = useFetchTerpeneData(open);
     const [selectedTastes, setSelectedTastes] = useState<Taste[]>([]);
     const [selectedSmells, setSelectedSmells] = useState<Smell[]>([]);
@@ -22,7 +22,6 @@ const SelectionModal: React.FC<Props> = ({ terpene, open, onClose, onClearSelect
 
 
     useEffect(() => {
-        console.log('Modal open state:', open);
         if (!open) {
             // Reset selected tastes, smells, and properties when modal is closed
             setSelectedTastes([]);
@@ -32,24 +31,33 @@ const SelectionModal: React.FC<Props> = ({ terpene, open, onClose, onClearSelect
     }, [open]);
 
     const handleSave = async () => {
-        let allTastes = [];
-        let allSmells = [];
-        let allProperties = [];
+        let allTastes: any[];
+        let allSmells: any[];
+        let allProperties: any[];
 
         // Filter out duplicate tastes
-        const newSelectedTastes = selectedTastes.filter(taste => !terpene.aryTaste || !terpene.aryTaste.find(t => t.TasteID === taste.TasteID));
-        allTastes = terpene.aryTaste ? [...terpene.aryTaste, ...newSelectedTastes] : [...newSelectedTastes];
-        allTastes = allTastes.map(taste => ({...taste, Citation: ''}));
+        const newSelectedTastes = selectedTastes.filter(taste => !terpene?.aryTaste || !terpene?.aryTaste.find(t => t.TasteID === taste.TasteID));
+        allTastes = terpene?.aryTaste ? [...terpene.aryTaste, ...newSelectedTastes] : [...newSelectedTastes];
+        allTastes = allTastes.map(taste => {
+            const existingTaste = terpene?.aryTaste?.find(t => t.TasteID === taste.TasteID);
+            return existingTaste ? existingTaste : {...taste, Citation: ''};
+        });
 
         // Filter out duplicate smells
-        const newSelectedSmells = selectedSmells.filter(smell => !terpene.arySmell || !terpene.arySmell.find(s => s.SmellID === smell.SmellID));
-        allSmells = terpene.arySmell ? [...terpene.arySmell, ...newSelectedSmells] : [...newSelectedSmells];
-        allSmells = allSmells.map(smell => ({...smell, Citation: ''}));
+        const newSelectedSmells = selectedSmells.filter(smell => !terpene?.arySmell || !terpene?.arySmell.find(s => s.SmellID === smell.SmellID));
+        allSmells = terpene?.arySmell ? [...terpene?.arySmell, ...newSelectedSmells] : [...newSelectedSmells];
+        allSmells = allSmells.map(smell => {
+            const existingSmell = terpene?.arySmell?.find(s => s.SmellID === smell.SmellID);
+            return existingSmell ? existingSmell : {...smell, Citation: ''};
+        });
 
         // Filter out duplicate properties
-        const newSelectedProperties = selectedProperties.filter(property => !terpene.aryProperty || !terpene.aryProperty.find(p => p.PropertyID === property.PropertyID));
-        allProperties = terpene.aryProperty ? [...terpene.aryProperty, ...newSelectedProperties] : [...newSelectedProperties];
-        allProperties = allProperties.map(property => ({...property, Citation: ''}));
+        const newSelectedProperties = selectedProperties.filter(property => !terpene?.aryProperty || !terpene?.aryProperty.find(p => p.PropertyID === property.PropertyID));
+        allProperties = terpene?.aryProperty ? [...terpene?.aryProperty, ...newSelectedProperties] : [...newSelectedProperties];
+        allProperties = allProperties.map(property => {
+            const existingProperty = terpene?.aryProperty?.find(p => p.PropertyID === property.PropertyID);
+            return existingProperty ? existingProperty : {...property, Citation: ''};
+        });
 
         const terpeneObject: TerpeneObjectResponse = {
             TerpeneID: terpene.TerpeneID,
@@ -62,8 +70,8 @@ const SelectionModal: React.FC<Props> = ({ terpene, open, onClose, onClearSelect
 
         try {
             await updateTerpeneObject(terpeneObject);
+            openSnackbar('Changes have been saved');
             onClose(); // Close the modal after successful update
-            handleSnackbarOpen('Changes have been saved');
         } catch (error) {
             console.error('Error updating terpene object:', error);
         }
@@ -106,14 +114,6 @@ const SelectionModal: React.FC<Props> = ({ terpene, open, onClose, onClearSelect
         setSelectedSmells([]);
         setSelectedProperties([]);
     };
-
-    function transformPropertyToPropertyWithCitation(property: Property): PropertywithCitation {
-        return {
-            PropertyID: property.PropertyID,
-            Property: property.Property,
-            Citation: null // or provide a default citation if available
-        };
-    }
     return (
         <Modal open={open} onClose={onClose}>
             <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 400, bgcolor: 'background.paper', boxShadow: 24, p: 4 }}>

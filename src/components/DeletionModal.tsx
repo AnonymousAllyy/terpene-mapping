@@ -17,10 +17,10 @@ interface DeletionProps {
     terpene: TerpeneObjectResponse;
     open: boolean;
     onClose: () => void;
-    handleSnackbarOpen: (message: string) => void;
+    openSnackbar: (message: string) => void;
 }
 
-const DeletionModal: React.FC<DeletionProps> = ({terpene, open, onClose, handleSnackbarOpen}) => {
+const DeletionModal: React.FC<DeletionProps> = ({terpene, open, onClose, openSnackbar}) => {
     const {tastes, smells, properties} = useFetchTerpeneData(open);
     const [selectedTastes, setSelectedTastes] = useState<TastewithCitation[]>(terpene.aryTaste);
     const [selectedSmells, setSelectedSmells] = useState<SmellwithCitation[]>(terpene.arySmell);
@@ -50,7 +50,7 @@ const DeletionModal: React.FC<DeletionProps> = ({terpene, open, onClose, handleS
 
         try {
             await updateTerpeneObject(updatedTerpene);
-            handleSnackbarOpen('Changes have been saved');
+            openSnackbar('Changes have been saved');
             onClose(); // Close the modal after successful update
         } catch (error) {
             console.error('Error updating terpene object:', error);
@@ -172,7 +172,7 @@ const DeletionModal: React.FC<DeletionProps> = ({terpene, open, onClose, handleS
                     MenuProps={{
                         PaperProps: {
                             style: {
-                                maxHeight: 200, // Adjust the maxHeight as needed
+                                maxHeight: 200,
                             },
                         },
                     }}

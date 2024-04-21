@@ -1,56 +1,46 @@
 import React, {useEffect, useState} from 'react';
 import {Box, Button, Grid, MenuItem, Paper, Select, SelectChangeEvent, Snackbar, Typography} from '@mui/material';
-import {
-    PropertywithCitation,
-    Smell,
-    SmellwithCitation,
-    Taste,
-    TastewithCitation,
-    Terpene,
-    TerpeneObjectResponse
-} from '@/interfaces';
-import {getTerpeneObject, getTerpenes} from '@/api/api';
+import {PropertywithCitation, SmellwithCitation, TastewithCitation, Terpene, TerpeneObjectResponse} from '@/interfaces';
+import {getTerpeneObject, getTerpenes, updateTerpeneObject} from '@/api/api';
 import SelectionModal from '@/components/SelectionModal';
 import MuiAlert from '@mui/material/Alert';
 import DeletionModal from '@/components/DeletionModal';
+import CitationList from '@/components/CitationList';
 
-interface PropertyObject {
-    Property: string;
-    PropertyID: number;
-}
-
-const Page: React.FC = () => {
+const Index: React.FC = () => {
     const [terpenes, setTerpenes] = useState<Terpene[]>([]);
     const [selectedTerpene, setSelectedTerpene] = useState<TerpeneObjectResponse>({
         TerpeneID: 0,
         Terpene: '',
         arySmell: [],
         aryTaste: [],
-        arySynonym: null,
+        arySynonym: [],
         aryProperty: []
     });
-    const [openSelectionModal, setOpenSelectionModal] = useState(false);
-    const [openDeletionModal, setOpenDeletionModal] = useState(false);
+    const [selectionModal, setOpenSelectionModal] = useState(false);
+    const [deletionModal, setOpenDeletionModal] = useState(false);
     const [selectedTastes, setSelectedTastes] = useState<TastewithCitation[]>([]);
     const [selectedSmells, setSelectedSmells] = useState<SmellwithCitation[]>([]);
     const [selectedProperties, setSelectedProperties] = useState<PropertywithCitation[]>([]);
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
 
+
     useEffect(() => {
         const fetchAllTerpenes = async () => {
             try {
-                const data = await getTerpenes(0); // Assuming dispensary ID is 0
+                const data = await getTerpenes(0);
                 setTerpenes(data);
             } catch (error) {
                 console.error('Error fetching terpenes:', error);
             }
         };
 
-        fetchAllTerpenes().then(r => {});
+        fetchAllTerpenes().then(() => {
+        });
     }, []);
 
-    const handleSnackbarOpen = (message: string) => {
+    const openSnackbar = (message: string) => {
         setSnackbarMessage(message);
         setSnackbarOpen(true);
     };
@@ -70,7 +60,7 @@ const Page: React.FC = () => {
                 Terpene: '',
                 arySmell: [],
                 aryTaste: [],
-                arySynonym: null,
+                arySynonym: [],
                 aryProperty: []
             });
             setSelectedSmells([]);
@@ -95,10 +85,10 @@ const Page: React.FC = () => {
         }
     };
 
-    const handleAddSelectionClick = () => {
+    const openSelectionModal = () => {
         setOpenSelectionModal(true);
     };
-    const handleDeleteSelectionClick = () => {
+    const openDeletionModal = () => {
         setOpenDeletionModal(true);
     };
 
@@ -109,16 +99,55 @@ const Page: React.FC = () => {
         setSelectedProperties([]);
     }
 
-    const handleCitationClick = () => {
-        console.log('Citation Clicked');
-    }
+    const createHandleCitationChange = (type: 'smell' | 'taste' | 'property') => async (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, id: number) => {
+        const newCitation = event.target.value;
+        let updatedSmells = selectedSmells;
+        let updatedTastes = selectedTastes;
+        let updatedProperties = selectedProperties;
+
+        if (type === 'smell') {
+            updatedSmells = selectedSmells.map(smell => smell.SmellID === id ? {
+                ...smell,
+                Citation: newCitation
+            } : smell);
+            setSelectedSmells(updatedSmells);
+        } else if (type === 'taste') {
+            updatedTastes = selectedTastes.map(taste => taste.TasteID === id ? {
+                ...taste,
+                Citation: newCitation
+            } : taste);
+            setSelectedTastes(updatedTastes);
+        } else if (type === 'property') {
+            updatedProperties = selectedProperties.map(property => property.PropertyID === id ? {
+                ...property,
+                Citation: newCitation
+            } : property);
+            setSelectedProperties(updatedProperties);
+        }
+
+        const terpeneObject: TerpeneObjectResponse = {
+            TerpeneID: selectedTerpene?.TerpeneID,
+            Terpene: selectedTerpene?.Terpene,
+            arySmell: updatedSmells,
+            aryTaste: updatedTastes,
+            arySynonym: selectedTerpene?.arySynonym,
+            aryProperty: updatedProperties
+        };
+
+        await updateTerpeneObject(terpeneObject);
+    };
+
+    const handleSmellCitationChange = createHandleCitationChange('smell');
+    const handleTasteCitationChange = createHandleCitationChange('taste');
+    const handlePropertyCitationChange = createHandleCitationChange('property');
+
 
     return (
         <Box width="100%" display="flex" flexDirection="column" alignItems="center">
             <Typography variant="h4" mb={5}>Terpene Mapping</Typography>
             <Box width="50%" mb={2} display="flex" flexDirection="column" alignItems="center">
                 <Select
-                    value={selectedTerpene?.TerpeneID}
+                    value={selectedTerpene?.TerpeneID || ''}
                     onChange={handleTerpeneChange}
                     sx={{ width: '100%' }}
                     MenuProps={{
@@ -135,54 +164,64 @@ const Page: React.FC = () => {
                         </MenuItem>
                     ))}
                 </Select>
-                <Box mt={2} display="flex" justifyContent="center">
-                    {selectedTerpene?.Terpene && (
+                <Grid container spacing={2} justifyContent="center">
+                    {selectedTerpene && (
                         <>
-                            <Button onClick={handleAddSelectionClick} variant="outlined">Add Details</Button>
-                            <Button onClick={handleDeleteSelectionClick} variant="outlined" color="error" sx={{ml: 1}}>Remove
-                                Details</Button>
-                            <Button onClick={handleCitationClick} variant="outlined" color="secondary" sx={{ ml: 1 }}>Add Citations</Button>
+                            <Grid item xs={6} sx={{mt: 1}}>
+                                <Button onClick={openSelectionModal} variant="outlined">Add Details</Button>
+                                <Button onClick={openDeletionModal} variant="outlined" color="error" sx={{ml: 1}}>Remove
+                                    Details</Button>
+                            </Grid>
                         </>
                     )}
-                </Box>
+                </Grid>
             </Box>
-            {selectedTerpene?.TerpeneID !== 0 && (
+            {selectedTerpene.TerpeneID !== 0 && (
                 <Box mt={2} width="100%">
                     <Grid container spacing={2}>
                         <Grid item xs={4}>
                             <Paper elevation={3} sx={{ p: 2, height: '100%' }}>
                                 <Typography variant="h6">Selected Smells:</Typography>
-                                {selectedTerpene.arySmell ? (
-                                    selectedTerpene.arySmell.map((smell: Smell) => (
-                                        <Typography key={smell.SmellID}>{smell.Smell}</Typography>
-                                    ))
-                                ) : (
-                                    <Typography>No smells available</Typography>
-                                )}
+                                <CitationList
+                                    items={(selectedSmells || []).map(smell => ({
+                                        id: smell.SmellID,
+                                        name: smell.Smell,
+                                        citation: smell.Citation
+                                    }))}
+                                    type='Smell'
+                                    handleCitationChange={handleSmellCitationChange}
+                                    openSnackbar={openSnackbar}
+                                />
                             </Paper>
                         </Grid>
                         <Grid item xs={4}>
                             <Paper elevation={3} sx={{ p: 2, height: '100%' }}>
                                 <Typography variant="h6">Selected Tastes:</Typography>
-                                {selectedTerpene.aryTaste ? (
-                                    selectedTerpene.aryTaste.map((taste: Taste) => (
-                                        <Typography key={taste.TasteID}>{taste.Taste}</Typography>
-                                    ))
-                                ) : (
-                                    <Typography>No tastes available</Typography>
-                                )}
+                                <CitationList
+                                    items={(selectedTastes || []).map(taste => ({
+                                        id: taste.TasteID,
+                                        name: taste.Taste,
+                                        citation: taste.Citation
+                                    }))}
+                                    type='Taste'
+                                    handleCitationChange={handleTasteCitationChange}
+                                    openSnackbar={openSnackbar}
+                                />
                             </Paper>
                         </Grid>
                         <Grid item xs={4}>
                             <Paper elevation={3} sx={{ p: 2, height: '100%' }}>
                                 <Typography variant="h6">Selected Properties:</Typography>
-                                {selectedTerpene.aryProperty ? (
-                                    selectedTerpene.aryProperty.map((property: PropertywithCitation) => (
-                                        <Typography key={property.PropertyID}>{property.Property}</Typography>
-                                    ))
-                                ) : (
-                                    <Typography>No properties available</Typography>
-                                )}
+                                <CitationList
+                                    items={(selectedProperties || []).map(property => ({
+                                        id: property.PropertyID,
+                                        name: property.Property,
+                                        citation: property.Citation
+                                    }))}
+                                    type='Property'
+                                    handleCitationChange={handlePropertyCitationChange}
+                                    openSnackbar={openSnackbar}
+                                />
                             </Paper>
                         </Grid>
                     </Grid>
@@ -190,24 +229,24 @@ const Page: React.FC = () => {
             )}
             <SelectionModal
                 terpene={selectedTerpene}
-                open={openSelectionModal}
+                open={selectionModal}
                 onClose={() => {
                     setOpenSelectionModal(false);
-                    fetchAndUpdateTerpeneObject(selectedTerpene.TerpeneID).then(r => {
+                    fetchAndUpdateTerpeneObject(selectedTerpene?.TerpeneID).then(() => {
                     }); // Call fetchTerpeneObject after modal is closed
                 }}
                 onClearSelections={clearSelections}
-                handleSnackbarOpen={handleSnackbarOpen}
+                openSnackbar={openSnackbar}
             />
             <DeletionModal
                 terpene={selectedTerpene}
-                open={openDeletionModal}
+                open={deletionModal}
                 onClose={() => {
                     setOpenDeletionModal(false);
-                    fetchAndUpdateTerpeneObject(selectedTerpene.TerpeneID).then(r => {
+                    fetchAndUpdateTerpeneObject(selectedTerpene?.TerpeneID).then(() => {
                     }); // Call fetchTerpeneObject after modal is closed
                 }}
-                handleSnackbarOpen={handleSnackbarOpen}
+                openSnackbar={openSnackbar}
             />
             <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
                 <MuiAlert elevation={6} variant="filled" onClose={handleSnackbarClose} severity="success">
@@ -219,4 +258,4 @@ const Page: React.FC = () => {
     );
 };
 
-export default Page;
+export default Index;

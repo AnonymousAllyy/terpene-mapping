@@ -47,7 +47,7 @@ export const getProperties = async (): Promise<Property[]> => {
     return await response.json();
 }
 
-export const getTerpeneObject = async (terpeneId: number): Promise<TerpeneObjectResponse> => {
+export const getTerpeneObject = async (terpeneId: number | undefined): Promise<TerpeneObjectResponse> => {
     const response = await fetch(`${API_ENDPOINTS.GET_TERPENE_OBJECT}?inTerpeneID=${terpeneId}`);
     if (!response.ok) {
         throw new Error('Failed to fetch terpenes');
