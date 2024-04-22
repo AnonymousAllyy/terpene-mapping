@@ -1,5 +1,17 @@
 import React, {useEffect, useState} from 'react';
-import {Box, Button, Grid, MenuItem, Paper, Select, SelectChangeEvent, Snackbar, Typography} from '@mui/material';
+import {
+    AppBar,
+    Box,
+    Button,
+    Grid,
+    MenuItem,
+    Paper,
+    Select,
+    SelectChangeEvent,
+    Snackbar,
+    Toolbar,
+    Typography
+} from '@mui/material';
 import {PropertywithCitation, SmellwithCitation, TastewithCitation, Terpene, TerpeneObjectResponse} from '@/interfaces';
 import {getTerpeneObject, getTerpenes, updateTerpeneObject} from '@/api/api';
 import MuiAlert from '@mui/material/Alert';
@@ -7,6 +19,8 @@ import EditTerpeneDetailsModal from '@/components/EditTerpeneDetailsModal';
 import CitationList from '@/components/CitationList';
 import {ThemeProvider} from '@mui/material/styles';
 import theme from '../styles/theme';
+
+theme.palette.background.default = '#eceff1';
 
 const Index: React.FC = () => {
     const [terpenes, setTerpenes] = useState<Terpene[]>([]);
@@ -137,9 +151,18 @@ const Index: React.FC = () => {
 
     return (
         <ThemeProvider theme={theme}>
-        <Box width="100%" display="flex" flexDirection="column" alignItems="center">
-            <Typography variant="h4" mb={5}>Terpene Mapping</Typography>
-            <Box width="50%" mb={2} display="flex" flexDirection="column" alignItems="center">
+            <AppBar position="static">
+                <Toolbar>
+                    <Typography variant="h6" component="div" sx={{flexGrow: 1}}>
+                        Terpene Mapping
+                    </Typography>
+                </Toolbar>
+            </AppBar>
+            <Box width="100%" display="flex" flexDirection="column" alignItems="center"
+                 sx={{backgroundColor: theme.palette.background.default, minHeight: '100vh'}}>
+
+                <Box width="50%" mb={2} display="flex" flexDirection="column">
+                    <Typography variant="h6" mt={5}>Select Terpene:</Typography>
                 <Select
                     value={selectedTerpene?.TerpeneID || ''}
                     onChange={handleTerpeneChange}

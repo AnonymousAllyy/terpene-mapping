@@ -3,7 +3,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import Collapse from '@mui/material/Collapse';
 import React from 'react';
-import CustomSwitch from '@/styles/CustomSwitch';
+import CustomSwitch from '../styles/CustomSwitch';
 
 interface Item {
     id: number;
@@ -20,8 +20,7 @@ interface CitationListProps {
 
 
 const CitationList: React.FC<CitationListProps> = ({items, type, handleCitationChange, openSnackbar}) => {
-    const [tempCitation, setTempCitation] = React.useState<string | null>(null);
-    // ID of the citation currently being edited. When a citation is clicked, this is set to the clicked citation's ID, causing the citation input field for that citation to be displayed.
+    const [tempCitations, setTempCitations] = React.useState<{ [id: number]: string[] }>({});
     const [showCitationInputId, setShowCitationInputId] = React.useState<number | null>(null);
 
     const showCitationInput = (item: Item) => {
@@ -29,29 +28,44 @@ const CitationList: React.FC<CitationListProps> = ({items, type, handleCitationC
             setShowCitationInputId(null); // Close the text area
         } else {
             setShowCitationInputId(item.id); // Open the text area
-            setTempCitation(item.citation || '');
+            setTempCitations({
+                ...tempCitations,
+                [item.id]: [item.citation || '']
+            });
         }
     };
 
-    const handleTempCitationChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        setTempCitation(event.target.value);
+    const handleTempCitationChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, id: number, index: number) => {
+        setTempCitations({
+            ...tempCitations,
+            [id]: tempCitations[id].map((citation, i) => i === index ? event.target.value : citation)
+        });
     };
 
-    const saveCitation = (id: number, name: string) => {
-        // Get the current citation for the item
+    const saveCitation = (id: number, name: string, index: number) => {
         const currentCitation = items.find(item => item.id === id)?.citation || '';
-        // If the new citation is the same as the current citation, return early
-        if (tempCitation === currentCitation) {
+        const newCitation = tempCitations[id][index];
+        if (newCitation === currentCitation) {
             return;
         }
 
-        handleCitationChange({target: {value: tempCitation}} as React.ChangeEvent<HTMLInputElement>, id);
-        setTempCitation(tempCitation); // set tempCitation to the new citation
+        handleCitationChange({target: {value: newCitation}} as React.ChangeEvent<HTMLInputElement>, id);
+        setTempCitations({
+            ...tempCitations,
+            [id]: tempCitations[id].map((citation, i) => i === index ? newCitation : citation)
+        });
         openSnackbar(`Citation for ${type}: ${name} has been updated`);
     };
 
+    const addCitation = (id: number) => {
+        setTempCitations({
+            ...tempCitations,
+            [id]: [...tempCitations[id], '']
+        });
+    };
+
     const cancelCitation = () => {
-        setTempCitation(''); // clear the tempCitation
+        setTempCitations({}); // clear the tempCitations
         setShowCitationInputId(null); // close the text area dropdown
     };
 
@@ -74,24 +88,31 @@ const CitationList: React.FC<CitationListProps> = ({items, type, handleCitationC
                             label={''}/>
                     </Box>
                     <Collapse in={showCitationInputId === item.id}>
-                        <Box display="flex" alignItems="center">
-                            <TextField
-                                label="Citation"
-                                variant="outlined"
-                                multiline
-                                rows={6}
-                                value={tempCitation || ''}
-                                onChange={handleTempCitationChange}
-                            />
-                            <Button onClick={() => saveCitation(item.id, item.name)} variant="text" color="primary"
-                                    sx={{ml: 1, fontWeight: 700}}>
-                                Save
-                            </Button>
-                            <Button onClick={() => cancelCitation()} variant="text" color="error"
-                                    sx={{ml: 1, fontWeight: 700}}>
-                                Cancel
-                            </Button>
-                        </Box>
+                        {tempCitations[item.id]?.map((citation, index) => (
+                            <Box display="flex" alignItems="center" key={index}>
+                                <TextField
+                                    label="Citation"
+                                    variant="outlined"
+                                    multiline
+                                    rows={6}
+                                    value={citation}
+                                    onChange={(event) => handleTempCitationChange(event, item.id, index)}
+                                />
+                                <Button onClick={() => saveCitation(item.id, item.name, index)} variant="text"
+                                        color="primary"
+                                        sx={{ml: 1, fontWeight: 700}}>
+                                    Save
+                                </Button>
+                                <Button onClick={() => cancelCitation()} variant="text" color="error"
+                                        sx={{ml: 1, fontWeight: 700}}>
+                                    Cancel
+                                </Button>
+                            </Box>
+                        ))}
+                        <Button onClick={() => addCitation(item.id)} variant="contained" color="primary"
+                                sx={{ml: 1, mt: 1}}>
+                            Add other
+                        </Button>
                     </Collapse>
                 </Box>
             ))}

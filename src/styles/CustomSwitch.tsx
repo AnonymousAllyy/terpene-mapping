@@ -3,6 +3,7 @@ import {Switch} from '@mui/material';
 
 const CustomSwitch = styled(Switch)(({ theme }) => ({
     '& .MuiSwitch-track': {
+        background: theme.palette.secondary.main,
         '&.Mui-checked': {
             background: theme.palette.secondary.main,
             borderRight: '1px solid black',
