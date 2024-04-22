@@ -214,7 +214,7 @@ const EditTerpeneDetailsModal: React.FC<DeletionProps> = ({terpene, open, onClos
                         />
                     ))}
                 </Box>
-                <Button onClick={updateTerpeneDetails} variant="contained">Save</Button>
+                <Button onClick={updateTerpeneDetails} variant="contained" color="primary">Save</Button>
                 <Button onClick={resetSelections} variant="contained" color="error" sx={{ml: 1}}>
                     Reset
                 </Button>
