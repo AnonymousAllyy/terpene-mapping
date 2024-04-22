@@ -5,6 +5,8 @@ import {getTerpeneObject, getTerpenes, updateTerpeneObject} from '@/api/api';
 import MuiAlert from '@mui/material/Alert';
 import EditTerpeneDetailsModal from '@/components/EditTerpeneDetailsModal';
 import CitationList from '@/components/CitationList';
+import {ThemeProvider} from '@mui/material/styles';
+import theme from '../styles/theme';
 
 const Index: React.FC = () => {
     const [terpenes, setTerpenes] = useState<Terpene[]>([]);
@@ -134,6 +136,7 @@ const Index: React.FC = () => {
 
 
     return (
+        <ThemeProvider theme={theme}>
         <Box width="100%" display="flex" flexDirection="column" alignItems="center">
             <Typography variant="h4" mb={5}>Terpene Mapping</Typography>
             <Box width="50%" mb={2} display="flex" flexDirection="column" alignItems="center">
@@ -159,7 +162,7 @@ const Index: React.FC = () => {
                     {selectedTerpene.TerpeneID !== 0 && (
                         <>
                             <Grid item xs={6} sx={{mt: 1}}>
-                                <Button onClick={openTerpeneDetailsModal} variant="outlined" color="success"
+                                <Button onClick={openTerpeneDetailsModal} variant="contained" color="primary"
                                         sx={{ml: 1}}>Add or Remove
                                     Details</Button>
                             </Grid>
@@ -234,7 +237,7 @@ const Index: React.FC = () => {
                 </MuiAlert>
             </Snackbar>
         </Box>
-
+        </ThemeProvider>
     );
 };
 
