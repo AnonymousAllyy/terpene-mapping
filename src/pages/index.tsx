@@ -1,22 +1,16 @@
 import React, {useEffect, useState} from 'react';
 import {
-    AppBar,
     Box,
     Button,
     Grid,
-    MenuItem,
-    Paper,
-    Select,
     SelectChangeEvent,
     Snackbar,
-    Toolbar,
     Typography
 } from '@mui/material';
 import {PropertywithCitation, SmellwithCitation, TastewithCitation, Terpene, TerpeneObjectResponse} from '@/interfaces';
 import {getTerpeneObject, getTerpenes, updateTerpeneObject} from '@/api/api';
 import MuiAlert from '@mui/material/Alert';
 import EditTerpeneDetailsModal from '@/components/EditTerpeneDetailsModal';
-import CitationList from '@/components/CitationList';
 import {ThemeProvider} from '@mui/material/styles';
 import theme from '../styles/theme';
 import Navbar from '@/components/Navbar';
@@ -195,7 +189,7 @@ const Index: React.FC = () => {
                                         citation: taste.Citation
                                     }))}
                                     type='Taste'
-                                    handleCitationChange={handleSmellCitationChange}
+                                    handleCitationChange={handleTasteCitationChange}
                                     openSnackbar={openSnackbar}
                                 />
                         </Grid>
@@ -207,7 +201,7 @@ const Index: React.FC = () => {
                                         citation: property.Citation
                                     }))}
                                     type='Property'
-                                    handleCitationChange={handleSmellCitationChange}
+                                    handleCitationChange={handlePropertyCitationChange}
                                     openSnackbar={openSnackbar}
                                 />
                         </Grid>
