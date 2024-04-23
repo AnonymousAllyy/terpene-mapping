@@ -52,3 +52,9 @@ export interface TerpeneObjectResponse extends Terpene {
     arySynonym: undefined | Synonym[];
     aryProperty: PropertywithCitation[];
 }
+
+export interface Item {
+    id: number;
+    name: string;
+    citation: string | null;
+}

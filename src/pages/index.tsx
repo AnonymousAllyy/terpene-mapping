@@ -1,12 +1,22 @@
 import React, {useEffect, useState} from 'react';
-import {Box, Button, Grid, MenuItem, Paper, Select, SelectChangeEvent, Snackbar, Typography} from '@mui/material';
+import {
+    Box,
+    Button,
+    Grid,
+    SelectChangeEvent,
+    Snackbar,
+    Typography
+} from '@mui/material';
 import {PropertywithCitation, SmellwithCitation, TastewithCitation, Terpene, TerpeneObjectResponse} from '@/interfaces';
 import {getTerpeneObject, getTerpenes, updateTerpeneObject} from '@/api/api';
 import MuiAlert from '@mui/material/Alert';
 import EditTerpeneDetailsModal from '@/components/EditTerpeneDetailsModal';
-import CitationList from '@/components/CitationList';
 import {ThemeProvider} from '@mui/material/styles';
 import theme from '../styles/theme';
+import Navbar from '@/components/Navbar';
+import TerpeneSelect from '@/components/TerpeneSelect';
+import SelectedItems from '@/components/SelectedItems';
+import colors from '../styles/colors';
 
 const Index: React.FC = () => {
     const [terpenes, setTerpenes] = useState<Terpene[]>([]);
@@ -137,33 +147,19 @@ const Index: React.FC = () => {
 
     return (
         <ThemeProvider theme={theme}>
-        <Box width="100%" display="flex" flexDirection="column" alignItems="center">
-            <Typography variant="h4" mb={5}>Terpene Mapping</Typography>
-            <Box width="50%" mb={2} display="flex" flexDirection="column" alignItems="center">
-                <Select
-                    value={selectedTerpene?.TerpeneID || ''}
-                    onChange={handleTerpeneChange}
-                    sx={{ width: '100%' }}
-                    MenuProps={{
-                        PaperProps: {
-                            style: {
-                                maxHeight: 300,
-                            },
-                        },
-                    }}
-                >
-                    {terpenes.map((terpene) => (
-                        <MenuItem key={terpene.TerpeneID} value={terpene.TerpeneID}>
-                            {terpene.Terpene}
-                        </MenuItem>
-                    ))}
-                </Select>
+            <Navbar/>
+            <Box width="100%" display="flex" flexDirection="column" alignItems="center"
+                 sx={{backgroundColor: theme.palette.background.default, minHeight: '100vh'}}>
+
+                <Box width="30%" mb={2} display="flex" flexDirection="column">
+                    <Typography variant="h6" mt={5}>Select Terpene:</Typography>
+                    <TerpeneSelect terpenes={terpenes} selectedTerpeneId={selectedTerpene?.TerpeneID} handleTerpeneChange={handleTerpeneChange} />
                 <Grid container spacing={2} justifyContent="center">
                     {selectedTerpene.TerpeneID !== 0 && (
                         <>
                             <Grid item xs={6} sx={{mt: 1}}>
-                                <Button onClick={openTerpeneDetailsModal} variant="contained" color="primary"
-                                        sx={{ml: 1}}>Add or Remove
+                                <Button onClick={openTerpeneDetailsModal} variant="contained"
+                                        sx={{ml: 1, backgroundColor: colors.lightText}}>Add or Remove
                                     Details</Button>
                             </Grid>
                         </>
@@ -171,27 +167,22 @@ const Index: React.FC = () => {
                 </Grid>
             </Box>
             {selectedTerpene.TerpeneID !== 0 && (
-                <Box mt={2} width="100%">
+                <Box mt={2} width="98%">
                     <Grid container spacing={2}>
-                        <Grid item xs={4}>
-                            <Paper elevation={3} sx={{ p: 2, height: '100%' }}>
-                                <Typography variant="h6">Selected Smells:</Typography>
-                                <CitationList
-                                    items={(selectedSmells || []).map(smell => ({
-                                        id: smell.SmellID,
-                                        name: smell.Smell,
-                                        citation: smell.Citation
-                                    }))}
-                                    type='Smell'
-                                    handleCitationChange={handleSmellCitationChange}
-                                    openSnackbar={openSnackbar}
-                                />
-                            </Paper>
+                        <Grid item xs={12} sm={12} md={4}>
+                            <SelectedItems
+                                items={(selectedSmells || []).map(smell => ({
+                                    id: smell.SmellID,
+                                    name: smell.Smell,
+                                    citation: smell.Citation
+                                }))}
+                                type='Smell'
+                                handleCitationChange={handleSmellCitationChange}
+                                openSnackbar={openSnackbar}
+                            />
                         </Grid>
-                        <Grid item xs={4}>
-                            <Paper elevation={3} sx={{ p: 2, height: '100%' }}>
-                                <Typography variant="h6">Selected Tastes:</Typography>
-                                <CitationList
+                        <Grid item xs={12} sm={12} md={4}>
+                                <SelectedItems
                                     items={(selectedTastes || []).map(taste => ({
                                         id: taste.TasteID,
                                         name: taste.Taste,
@@ -201,12 +192,9 @@ const Index: React.FC = () => {
                                     handleCitationChange={handleTasteCitationChange}
                                     openSnackbar={openSnackbar}
                                 />
-                            </Paper>
                         </Grid>
-                        <Grid item xs={4}>
-                            <Paper elevation={3} sx={{ p: 2, height: '100%' }}>
-                                <Typography variant="h6">Selected Properties:</Typography>
-                                <CitationList
+                        <Grid item xs={12} sm={12} md={4}>
+                                <SelectedItems
                                     items={(selectedProperties || []).map(property => ({
                                         id: property.PropertyID,
                                         name: property.Property,
@@ -216,7 +204,6 @@ const Index: React.FC = () => {
                                     handleCitationChange={handlePropertyCitationChange}
                                     openSnackbar={openSnackbar}
                                 />
-                            </Paper>
                         </Grid>
                     </Grid>
                 </Box>
