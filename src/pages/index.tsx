@@ -1,12 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {
-    Box,
-    Button,
-    Grid,
-    SelectChangeEvent,
-    Snackbar,
-    Typography
-} from '@mui/material';
+import {Box, Button, Grid, SelectChangeEvent, Snackbar, Typography} from '@mui/material';
 import {PropertywithCitation, SmellwithCitation, TastewithCitation, Terpene, TerpeneObjectResponse} from '@/interfaces';
 import {getTerpeneObject, getTerpenes, updateTerpeneObject} from '@/api/api';
 import MuiAlert from '@mui/material/Alert';
@@ -154,22 +147,20 @@ const Index: React.FC = () => {
                 <Box width="30%" mb={2} display="flex" flexDirection="column">
                     <Typography variant="h6" mt={5}>Select Terpene:</Typography>
                     <TerpeneSelect terpenes={terpenes} selectedTerpeneId={selectedTerpene?.TerpeneID} handleTerpeneChange={handleTerpeneChange} />
-                <Grid container spacing={2} justifyContent="center">
                     {selectedTerpene.TerpeneID !== 0 && (
                         <>
-                            <Grid item xs={6} sx={{mt: 1}}>
+                            <Grid item xs={12} sx={{mt: 1}}>
                                 <Button onClick={openTerpeneDetailsModal} variant="contained"
-                                        sx={{ml: 1, backgroundColor: colors.lightText}}>Add or Remove
+                                        sx={{ml: 1, backgroundColor: colors.secondary}}>Add or Remove
                                     Details</Button>
                             </Grid>
                         </>
                     )}
-                </Grid>
             </Box>
             {selectedTerpene.TerpeneID !== 0 && (
-                <Box mt={2} width="98%">
+                <Box mt={2} width="75%" sx={{backgroundColor: colors.background}}>
                     <Grid container spacing={2}>
-                        <Grid item xs={12} sm={12} md={4}>
+                        <Grid item xs={12} sm={12} md={12}>
                             <SelectedItems
                                 items={(selectedSmells || []).map(smell => ({
                                     id: smell.SmellID,
@@ -181,7 +172,7 @@ const Index: React.FC = () => {
                                 openSnackbar={openSnackbar}
                             />
                         </Grid>
-                        <Grid item xs={12} sm={12} md={4}>
+                        <Grid item xs={12} sm={12} md={12}>
                                 <SelectedItems
                                     items={(selectedTastes || []).map(taste => ({
                                         id: taste.TasteID,
@@ -193,7 +184,7 @@ const Index: React.FC = () => {
                                     openSnackbar={openSnackbar}
                                 />
                         </Grid>
-                        <Grid item xs={12} sm={12} md={4}>
+                        <Grid item xs={12} sm={12} md={12}>
                                 <SelectedItems
                                     items={(selectedProperties || []).map(property => ({
                                         id: property.PropertyID,

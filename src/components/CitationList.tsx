@@ -95,12 +95,11 @@ const CitationList: React.FC<CitationListProps> = ({items, type, handleCitationC
                                     onChange={(event) => handleTempCitationChange(event, item.id, index)}
                                 />
                                 <Button onClick={() => saveCitation(item.id, item.name, index)} variant="text"
-                                        color="primary"
-                                        sx={{ml: 1, fontWeight: 700}}>
+                                        sx={{ml: 1, color: colors.secondary}}>
                                     Save
                                 </Button>
                                 <Button onClick={() => cancelCitation()} variant="text" color="error"
-                                        sx={{ml: 1, fontWeight: 700}}>
+                                        sx={{ml: 1}}>
                                     Cancel
                                 </Button>
                             </Box>
