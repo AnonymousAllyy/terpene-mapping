@@ -9,9 +9,13 @@ const theme = createTheme({
         secondary: {
             main: '#c0c0c0',
         },
-        success: {
-            main: '#60c761',
-        },
+        // success: {
+        //     main: '#60c761',
+        // },
+        background: {
+            default: '#eceff1',
+
+        }
     },
     // Add more customizations as needed
 });
