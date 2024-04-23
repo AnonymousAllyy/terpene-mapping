@@ -4,12 +4,8 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import Collapse from '@mui/material/Collapse';
 import React from 'react';
 import CustomSwitch from '../styles/CustomSwitch';
-
-interface Item {
-    id: number;
-    name: string;
-    citation: string | null;
-}
+import {Item} from '@/interfaces';
+import colors from '../styles/colors';
 
 interface CitationListProps {
     items: Item[];
@@ -109,8 +105,8 @@ const CitationList: React.FC<CitationListProps> = ({items, type, handleCitationC
                                 </Button>
                             </Box>
                         ))}
-                        <Button onClick={() => addCitation(item.id)} variant="contained" color="primary"
-                                sx={{ml: 1, mt: 1}}>
+                        <Button onClick={() => addCitation(item.id)} variant="contained"
+                                sx={{ml: 1, mt: 1, backgroundColor: colors.lightText}}>
                             Add other
                         </Button>
                     </Collapse>
