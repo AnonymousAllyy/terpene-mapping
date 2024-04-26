@@ -105,7 +105,7 @@ const CitationList: React.FC<CitationListProps> = ({items, type, handleCitationC
                             </Box>
                         ))}
                         <Button onClick={() => addCitation(item.id)} variant="contained"
-                                sx={{ml: 1, mt: 1, backgroundColor: colors.lightText}}>
+                                sx={{m: 2, backgroundColor: colors.lightText}}>
                             Add other
                         </Button>
                     </Collapse>
