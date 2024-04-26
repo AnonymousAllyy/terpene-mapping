@@ -1,9 +1,9 @@
 ---
 name: Feature request
-about: Suggest an idea for this project
+about: Suggest an update or new feature for Terpene Mapping
 title: ''
-labels: ''
-assignees: ''
+labels: enhancement
+assignees: AnonymousAllyy
 
 ---
 
