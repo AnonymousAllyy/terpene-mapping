@@ -1,112 +1,32 @@
-import {Box, Button, Chip, MenuItem, Modal, Select, SelectChangeEvent, Typography} from '@mui/material';
-import {getTerpeneObject, updateTerpeneObject} from '@/api/api';
-import React, {useEffect, useState} from 'react';
-import {
-    BasicProperty,
-    PropertywithCitation,
-    Smell,
-    SmellwithCitation,
-    Taste,
-    TastewithCitation,
-    TerpeneObjectResponse
-} from '@/interfaces';
+import {Box, Button, Chip, MenuItem, Modal, Select, Typography} from '@mui/material';
+import React from 'react';
+import {TerpeneObjectResponse} from '@/interfaces';
 import CancelIcon from '@mui/icons-material/Cancel';
 import useFetchTerpeneData from '@/hooks/useFetchTerpeneData';
+import useTerpeneMappings from '@/hooks/useTerpeneMappings';
 
-interface DeletionProps {
+interface UpdateTerpeneMappingsProps {
     terpene: TerpeneObjectResponse;
     open: boolean;
     onClose: () => void;
     openSnackbar: (message: string) => void;
 }
 
-const EditTerpeneDetailsModal: React.FC<DeletionProps> = ({terpene, open, onClose, openSnackbar}) => {
+const UpdateTerpeneMappingsModal: React.FC<UpdateTerpeneMappingsProps> = ({terpene, open, onClose, openSnackbar}) => {
     const {tastes, smells, properties} = useFetchTerpeneData(open);
-    const [selectedTastes, setSelectedTastes] = useState<TastewithCitation[]>(terpene.aryTaste);
-    const [selectedSmells, setSelectedSmells] = useState<SmellwithCitation[]>(terpene.arySmell);
-    const [selectedProperties, setSelectedProperties] = useState<PropertywithCitation[]>(terpene.aryProperty);
-    const [initialTastes, setInitialTastes] = useState<TastewithCitation[]>([]);
-    const [initialSmells, setInitialSmells] = useState<SmellwithCitation[]>([]);
-    const [initialProperties, setInitialProperties] = useState<PropertywithCitation[]>([]);
-
-
-    useEffect(() => {
-        setSelectedTastes(terpene.aryTaste || []);
-        setSelectedSmells(terpene.arySmell || []);
-        setSelectedProperties(terpene.aryProperty || []);
-
-        setInitialTastes(terpene.aryTaste || []);
-        setInitialSmells(terpene.arySmell || []);
-        setInitialProperties(terpene.aryProperty || []);
-    }, [terpene]);
-
-
-    const updateTerpeneDetails = async () => {
-        // Fetch the latest terpene object from the server
-        const latestTerpene = await getTerpeneObject(terpene.TerpeneID);
-
-        let updatedTerpene = {...latestTerpene};
-
-        updatedTerpene.arySmell = selectedSmells.map(selectedSmell => {
-            const existingSmell = latestTerpene.arySmell
-                ? latestTerpene.arySmell.find(smell => smell.SmellID === selectedSmell.SmellID)
-                : null;
-            return existingSmell ? existingSmell : {...selectedSmell, Citation: ''};
-        });
-
-        updatedTerpene.aryTaste = selectedTastes.map(selectedTaste => {
-            const existingTaste = latestTerpene.aryTaste
-                ? latestTerpene.aryTaste.find(taste => taste.TasteID === selectedTaste.TasteID)
-                : null;
-            return existingTaste ? existingTaste : {...selectedTaste, Citation: ''};
-        });
-
-        updatedTerpene.aryProperty = selectedProperties.map(selectedProperty => {
-            const existingProperty = latestTerpene.aryProperty
-                ? latestTerpene.aryProperty.find(property => property.PropertyID === selectedProperty.PropertyID)
-                : null;
-            return existingProperty ? existingProperty : {...selectedProperty, Citation: ''};
-        });
-
-        try {
-            await updateTerpeneObject(updatedTerpene);
-            openSnackbar('Changes have been saved');
-            onClose(); // Close the modal after successful update
-        } catch (error) {
-            console.error('Error updating terpene object:', error);
-        }
-    };
-
-    const handleDeleteTaste = (tasteToDelete: Taste) => {
-        setSelectedTastes(prevTastes => prevTastes.filter(taste => taste !== tasteToDelete));
-    };
-
-    const handleDeleteSmell = (smellToDelete: Smell) => {
-        setSelectedSmells(prevSmells => prevSmells.filter(smell => smell !== smellToDelete));
-    }
-
-    const handleDeleteProperty = (propertyToDelete: PropertywithCitation) => {
-        setSelectedProperties(prevProperties => prevProperties.filter(property => property !== propertyToDelete));
-    }
-
-    const handleTasteChange = (event: SelectChangeEvent<Taste[]>) => {
-        setSelectedTastes(event.target.value as TastewithCitation[]);
-    };
-
-    const handleSmellChange = (event: SelectChangeEvent<Smell[]>) => {
-        setSelectedSmells(event.target.value as SmellwithCitation[]);
-    };
-
-    const handlePropertyChange = (event: SelectChangeEvent<BasicProperty[]>) => {
-        setSelectedProperties(event.target.value as PropertywithCitation[]);
-    };
-
-    const resetSelections = () => {
-        // Reset the selections to the initial state
-        setSelectedTastes(initialTastes);
-        setSelectedSmells(initialSmells);
-        setSelectedProperties(initialProperties);
-    };
+    const {
+        selectedTastes,
+        selectedSmells,
+        selectedProperties,
+        updateTerpeneMapping,
+        handleDeleteTaste,
+        handleDeleteSmell,
+        handleDeleteProperty,
+        handleTasteChange,
+        handleSmellChange,
+        handlePropertyChange,
+        resetSelections
+    } = useTerpeneMappings(terpene, openSnackbar, onClose);
 
 
     return (
@@ -161,7 +81,7 @@ const EditTerpeneDetailsModal: React.FC<DeletionProps> = ({terpene, open, onClos
                     MenuProps={{
                         PaperProps: {
                             style: {
-                                maxHeight: 300, // Adjust the maxHeight as needed
+                                maxHeight: 300,
                             },
                         },
                     }}
@@ -214,7 +134,7 @@ const EditTerpeneDetailsModal: React.FC<DeletionProps> = ({terpene, open, onClos
                         />
                     ))}
                 </Box>
-                <Button onClick={updateTerpeneDetails} variant="contained" color="primary">Save</Button>
+                <Button onClick={updateTerpeneMapping} variant="contained" color="primary">Save</Button>
                 <Button onClick={resetSelections} variant="contained" color="error" sx={{ml: 1}}>
                     Reset
                 </Button>
@@ -223,4 +143,4 @@ const EditTerpeneDetailsModal: React.FC<DeletionProps> = ({terpene, open, onClos
     );
 };
 
-export default EditTerpeneDetailsModal;
+export default UpdateTerpeneMappingsModal;

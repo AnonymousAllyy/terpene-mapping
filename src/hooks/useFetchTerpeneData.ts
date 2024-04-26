@@ -3,7 +3,7 @@ import {getProperties, getSmells, getTastes} from '@/api/api';
 import {Property, Smell, Taste} from '@/interfaces';
 
 
-const useFetchData = (open: boolean) => {
+const useFetchTerpeneData = (open: boolean) => {
     const [tastes, setTastes] = useState<Taste[]>([]);
     const [smells, setSmells] = useState<Smell[]>([]);
     const [properties, setProperties] = useState<Property[]>([]);
@@ -31,4 +31,4 @@ const useFetchData = (open: boolean) => {
     return {tastes, smells, properties};
 };
 
-export default useFetchData;
+export default useFetchTerpeneData;

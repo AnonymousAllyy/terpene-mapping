@@ -1,11 +1,8 @@
 import {Box, Button, FormControlLabel, TextField, Typography} from '@mui/material';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import CancelIcon from '@mui/icons-material/Cancel';
 import Collapse from '@mui/material/Collapse';
 import React from 'react';
 import CustomSwitch from '../styles/CustomSwitch';
 import {Item} from '@/interfaces';
-import colors from '../styles/colors';
 
 interface CitationListProps {
     items: Item[];
@@ -24,10 +21,12 @@ const CitationList: React.FC<CitationListProps> = ({items, type, handleCitationC
             setShowCitationInputId(null); // Close the text area
         } else {
             setShowCitationInputId(item.id); // Open the text area
-            setTempCitations({
-                ...tempCitations,
-                [item.id]: [item.citation || '']
-            });
+            if (!tempCitations[item.id]) { // Only set tempCitations for this item if it hasn't been set yet
+                setTempCitations({
+                    ...tempCitations,
+                    [item.id]: [item.citation || '']
+                });
+            }
         }
     };
 
@@ -52,13 +51,7 @@ const CitationList: React.FC<CitationListProps> = ({items, type, handleCitationC
         });
         openSnackbar(`Citation for ${type}: ${name} has been updated`);
     };
-
-    const addCitation = (id: number) => {
-        setTempCitations({
-            ...tempCitations,
-            [id]: [...tempCitations[id], '']
-        });
-    };
+    
 
     const cancelCitation = () => {
         setTempCitations({}); // clear the tempCitations
@@ -77,11 +70,10 @@ const CitationList: React.FC<CitationListProps> = ({items, type, handleCitationC
                                 <CustomSwitch
                                     checked={Boolean(item.citation)}
                                     onChange={() => showCitationInput(item)}
-                                    icon={<CancelIcon style={{color: 'red'}}/>}
-                                    checkedIcon={<CheckCircleIcon style={{color: 'green'}}/>}
                                 />
                             }
-                            label={''}/>
+                            label={''}
+                        />
                     </Box>
                     <Collapse in={showCitationInputId === item.id}>
                         {tempCitations[item.id]?.map((citation, index) => (
@@ -90,24 +82,20 @@ const CitationList: React.FC<CitationListProps> = ({items, type, handleCitationC
                                     label="Citation"
                                     variant="outlined"
                                     multiline
-                                    rows={6}
+                                    rows={8}
                                     value={citation}
                                     onChange={(event) => handleTempCitationChange(event, item.id, index)}
+                                    sx={{width: '85%'}}
                                 />
                                 <Button onClick={() => saveCitation(item.id, item.name, index)} variant="text"
-                                        sx={{ml: 1, color: colors.secondary}}>
+                                        color="success">
                                     Save
                                 </Button>
-                                <Button onClick={() => cancelCitation()} variant="text" color="error"
-                                        sx={{ml: 1}}>
+                                <Button onClick={() => cancelCitation()} variant="text" color="error">
                                     Cancel
                                 </Button>
                             </Box>
                         ))}
-                        <Button onClick={() => addCitation(item.id)} variant="contained"
-                                sx={{m: 2, backgroundColor: colors.lightText}}>
-                            Add other
-                        </Button>
                     </Collapse>
                 </Box>
             ))}

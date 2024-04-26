@@ -3,7 +3,7 @@ import {Box, Button, Grid, SelectChangeEvent, Snackbar, Typography} from '@mui/m
 import {PropertywithCitation, SmellwithCitation, TastewithCitation, Terpene, TerpeneObjectResponse} from '@/interfaces';
 import {getTerpeneObject, getTerpenes, updateTerpeneObject} from '@/api/api';
 import MuiAlert from '@mui/material/Alert';
-import EditTerpeneDetailsModal from '@/components/EditTerpeneDetailsModal';
+import UpdateTerpeneMappingsModal from '@/components/UpdateTerpeneMappingsModal';
 import {ThemeProvider} from '@mui/material/styles';
 import theme from '../styles/theme';
 import Navbar from '@/components/Navbar';
@@ -79,7 +79,15 @@ const Index: React.FC = () => {
         const terpeneID = event.target.value as number;
         const selectedTerpene = terpenes.find(terpene => terpene.TerpeneID === terpeneID);
         if (selectedTerpene) {
-            await fetchAndUpdateTerpeneObject(selectedTerpene.TerpeneID);
+            const data = await getTerpeneObject(selectedTerpene.TerpeneID);
+            if (data) {
+                setSelectedTerpene(data);
+                setSelectedSmells(data.arySmell);
+                setSelectedTastes(data.aryTaste);
+                setSelectedProperties(data.aryProperty);
+            } else {
+                console.error('Unexpected data format:', data);
+            }
         } else {
             setSelectedTerpene({
                 TerpeneID: 0,
@@ -199,7 +207,7 @@ const Index: React.FC = () => {
                     </Grid>
                 </Box>
             )}
-            <EditTerpeneDetailsModal
+                <UpdateTerpeneMappingsModal
                 terpene={selectedTerpene}
                 open={terpeneDetailsModal}
                 onClose={() => {
