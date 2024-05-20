@@ -84,7 +84,7 @@ const CitationList: React.FC<CitationListProps> = ({items, type, handleCitationC
                                     multiline
                                     rows={8}
                                     value={citation}
-                                    onChange={(event) => handleTempCitationChange(event, item.id, index)}
+                                    onChange={(event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleTempCitationChange(event, item.id, index)}
                                     sx={{width: '85%'}}
                                 />
                                 <Button onClick={() => saveCitation(item.id, item.name, index)} variant="text"
